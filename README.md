@@ -9,7 +9,7 @@ The POC has been created locally using docker images and Kubernetes with the fol
 - Elasticsearch:  It's going to store as indexed documents the information pulling from de data source.
 - Kibana:  It's a data visualization dashboard that works with Elasticsearch and provides the Dev Tools which let's interact with the information indexed  in Elasticsearch throughout its REST API 
 
-
+![Alt text](ELK-cluster-POC.png?raw=true "Cluster diagram")
 
 As the image above shows the cluster was created with three POD's. 
 
