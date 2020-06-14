@@ -1,0 +1,32 @@
+##Enter to bash in oracle image and execute the command
+
+$ kubectl exec -it elk-hgfd5 --container oracledb -- /bin/bash -c "source /home/oracle/.bashrc; sqlplus /nolog"
+
+connect sys as sysdba;
+
+alter session set "_ORACLE_SCRIPT"=true;
+create user LOCAL identified by LOCAL;
+GRANT CONNECT, RESOURCE, DBA TO LOCAL;
+
+create table LOCAL.person (id int, first_name varchar2(20), last_name varchar2(20), telephone int);
+
+
+
+If, like me, your goal is get the database host and SID to generate a Oracle JDBC url, as
+
+jdbc:oracle:thin:@<server_host>:1521:<instance_name>
+the following commands will help:
+
+Oracle query command to check the SID (or instance name):
+
+select sys_context('userenv','instance_name') from dual; 
+Oracle query command to check database name (or server host):
+
+select sys_context('userenv', 'server_host') from dual;
+
+
+select * from LOCAL.person;
+
+--create table "LOCAL".person (id int, first_name varchar2(20), last_name varchar2(20), telephone int);
+INSERT INTO LOCAL.person (ID, FIRST_NAME, LAST_NAME, TELEPHONE) VALUES (1, 'DAVID', 'SANCHEZ', 123456);
+commit;

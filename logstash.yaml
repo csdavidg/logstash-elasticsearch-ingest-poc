@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+    name: elk-logstash-rc
+spec:
+    replicas: 1
+    selector: 
+        app: elk-logstash
+    template:
+        metadata:
+            labels:
+                app: elk-logstash
+        spec:
+            containers:
+            -   image: csdavidg/logstash.custom:1.0
+                name: logstash
+                ports:
+                -   name: logstashport
+                    containerPort: 9600
+            imagePullSecrets:
+            - name: regcred
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+    name: logstashservice
+spec:
+    type: NodePort
+    ports:
+    -   name: logstashsvport
+        port: 9600
+        targetPort: logstashport
+        nodePort: 30096
+    selector:
+        app: elk-logstash
+    

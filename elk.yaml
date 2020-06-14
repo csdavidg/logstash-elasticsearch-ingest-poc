@@ -1,0 +1,99 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: elkstorage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+    name: elk-pv
+spec:
+    storageClassName: elkstorage
+    capacity: 
+        storage: 3Gi
+    accessModes:
+    -   ReadWriteOnce
+    -   ReadOnlyMany
+    persistentVolumeReclaimPolicy: Recycle
+    hostPath:
+        path: /tmp/elk
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: elk-pvc
+spec:
+    storageClassName: elkstorage
+    resources:
+        requests:
+            storage: 2Gi
+    accessModes:
+    -   ReadWriteOnce
+
+---
+
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: elk-rc
+spec:
+  replicas: 1
+  selector:
+    app: elk
+  template:
+    metadata:
+      labels:
+        app: elk
+    spec:
+        containers:
+        -   image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
+            name: elasticsearch
+            ports:
+            -   name: elsport
+                containerPort: 9200
+                protocol: TCP
+            env:
+            -   name: discovery.type
+                value: single-node
+            volumeMounts:
+            -   name: elk-data
+                mountPath: /tmp/elk/es
+        -   image: docker.elastic.co/kibana/kibana:7.5.1
+            name: kibana
+            ports:
+            -   name: kibanaport
+                containerPort: 5601
+                protocol: TCP
+            env:
+            -   name: ELASTICSEARCH_HOSTS
+                value: http://localhost:9200    
+        volumes:
+        -   name: elk-data
+            persistentVolumeClaim:
+                claimName: elk-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+    name: elk-service
+spec:
+    type: NodePort
+    ports:
+    -   name: kibana
+        port: 5601
+        targetPort: kibanaport
+        nodePort: 30056
+    -   name: es
+        port: 9200
+        targetPort: elsport
+        nodePort: 30092
+    selector:
+        app: elk

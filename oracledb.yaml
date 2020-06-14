@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+    name: oracle-rs
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: oracledb
+    template:
+        metadata:
+            labels:
+                app: oracledb
+        spec:
+            containers:
+            -   image: store/oracle/database-enterprise:12.2.0.1
+                name: oracledb
+                ports:
+                -   name: oracledbport
+                    containerPort: 1521
+            imagePullSecrets:
+            - name: regcred
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+    name: oracle-svc
+spec:
+    type: LoadBalancer
+    ports:
+    -   name: oracle
+        port: 1521
+        targetPort: oracledbport
+    selector:
+        app: oracledb
